@@ -1,30 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
-<?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.chart.StackedBarChart?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
 
 <AnchorPane id="AnchorPane" prefHeight="480.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="datagrapher.MainController">
-    <children>
-      <StackedBarChart fx:id="chart" categoryGap="1.0" layoutX="12.0" layoutY="66.0" title="Failed Food Inspections by Zip Code" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+   <children>
+      <BarChart fx:id="chart" barGap="1.0" categoryGap="0.0" title="Failed Food Inspections in Chicago" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <xAxis>
           <CategoryAxis side="BOTTOM" />
         </xAxis>
         <yAxis>
           <NumberAxis side="LEFT" />
         </yAxis>
-      </StackedBarChart>
-      <LineChart fx:id="percentageChart" axisSortingPolicy="NONE" horizontalGridLinesVisible="false" horizontalZeroLineVisible="false" layoutX="43.0" layoutY="40.0" legendVisible="false" prefHeight="100.0" verticalGridLinesVisible="false" verticalZeroLineVisible="false" AnchorPane.leftAnchor="13.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0">
-        <xAxis>
-          <CategoryAxis side="BOTTOM" />
-        </xAxis>
-        <yAxis>
-          <NumberAxis side="LEFT" />
-        </yAxis>
-      </LineChart>
-        <Label fx:id="title" layoutX="14.0" layoutY="14.0" minHeight="16" minWidth="69" text="Percentage Failed" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="150.0" />
-    </children>
+      </BarChart>
+   </children>
 </AnchorPane>

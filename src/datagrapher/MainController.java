@@ -15,6 +15,7 @@ import java.util.Scanner;
 import java.util.TreeMap;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
@@ -26,11 +27,8 @@ import javafx.scene.chart.XYChart;
 public class MainController implements Initializable {
         
     @FXML
-    private StackedBarChart<String,Number> chart;
-    
-    @FXML
-    private LineChart<String,Number> percentageChart;
-    
+    private BarChart<String,Number> chart;
+        
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         String s = "https://data.cityofchicago.org/resource/4ijn-s7e5.json?$select=zip,results";
@@ -57,16 +55,14 @@ public class MainController implements Initializable {
         scan.close();
 
         Map<Integer, Integer> failedInspections = new TreeMap<Integer, Integer>();
-        Map<Integer, Integer> unfailedInspections = new TreeMap<Integer, Integer>();
         Gson gson = new Gson();
         Inspection[] inspections = gson.fromJson(str, Inspection[].class);
 
-        // Add all the zips to both maps
+        // Add all the zips to the maps
         for (Inspection inspection : inspections) {
             Integer zip = inspection.getZip();
             if (! failedInspections.containsKey(zip)) {
                 failedInspections.put(zip, 0);
-                unfailedInspections.put(zip, 0);
             }
         }
         for (Inspection inspection : inspections) {
@@ -74,9 +70,6 @@ public class MainController implements Initializable {
             if (inspection.failed()) {
                 Integer currFails = failedInspections.get(zip);
                 failedInspections.put(zip, currFails + 1);
-            } else {
-                Integer curTotal = unfailedInspections.get(zip);
-                unfailedInspections.put(zip, curTotal + 1);
             }
         }
 
@@ -88,29 +81,5 @@ public class MainController implements Initializable {
             failedSeries.getData().add(new XYChart.Data(zip.toString(), failedInspections.get(zip)));
         }
         chart.getData().add(failedSeries);
-
-        XYChart.Series<String, Number> totalSeries = new XYChart.Series<>();
-        XYChart.Series<String, Number> percentageSeries = new XYChart.Series();
-        totalSeries.setName("# Unfailed Inspections");
-        keys = unfailedInspections.keySet().toArray();
-        Arrays.sort(keys);
-        for (Object zip : keys) {
-            int unfailed = unfailedInspections.get(zip);
-            int failed = 0;
-            if (failedInspections.containsKey(zip)) {
-                failed = failedInspections.get(zip);
-            }
-            int total = unfailed + failed;
-            totalSeries.getData().add(new XYChart.Data(zip.toString(), unfailed));
-            percentageSeries.getData().add(new XYChart.Data(zip.toString(), (double) failed / total));
-        }
-        chart.getData().add(totalSeries);
-        percentageChart.getData().add(percentageSeries);
-        percentageChart.getXAxis().setTickLabelsVisible(false);
-        percentageChart.getYAxis().setTickLabelsVisible(false);        
-        
-        //double x1 = chart.getYAxis().computeAreaInScreen();
-        //percentageChart.setLayoutX(chart.getYAxis().getWidth());
-    }    
-    
+    }        
 }
