@@ -33,17 +33,19 @@ public class MainController implements Initializable, ChangeListener<String> {
     @FXML
     private ChoiceBox filterChoice;
     
-    private Map<Integer, Integer> failedInspections;
-    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         filterChoice.setItems(FXCollections.observableArrayList("all", "good", "bad", "ugly"));
-        filterChoice.setValue("all"); // default
+        filterChoice.setValue(Singleton.getFilterValue()); // default
         filterChoice.getSelectionModel().selectedItemProperty().addListener(this);
-        refreshData();
+        if(Singleton.getFailures() == null) {
+            refreshData();
+        }
+        updateGraph(filterChoice.getValue().toString());
     }
     
     public void changed(ObservableValue ov, String value, String newValue) {
+        Singleton.setFilterValue(newValue);
         updateGraph(newValue);
     }    
     
@@ -62,7 +64,6 @@ public class MainController implements Initializable, ChangeListener<String> {
             scan = new Scanner(myUrl.openStream());
         } catch (Exception e) {
             System.out.println("Could not connect to " + s);
-            System.exit(-1);
         }
         
         String str = new String();
@@ -71,7 +72,7 @@ public class MainController implements Initializable, ChangeListener<String> {
         }
         scan.close();
 
-        failedInspections = new TreeMap<Integer, Integer>();
+        Map<Integer, Integer> failedInspections = new TreeMap<Integer, Integer>();
         Gson gson = new Gson();
         Inspection[] inspections = gson.fromJson(str, Inspection[].class);
 
@@ -89,6 +90,7 @@ public class MainController implements Initializable, ChangeListener<String> {
                 failedInspections.put(zip, currFails + 1);
             }
         }
+        Singleton.setFailures(failedInspections);
         updateGraph(filterChoice.getValue().toString());
     }       
     
@@ -96,6 +98,7 @@ public class MainController implements Initializable, ChangeListener<String> {
         chart.getData().clear();
         XYChart.Series<String, Number> failedSeries = new XYChart.Series();
         failedSeries.setName("# Failed Inspections");
+        Map<Integer, Integer> failedInspections = Singleton.getFailures();
         Object[] keys = failedInspections.keySet().toArray();
         Arrays.sort(keys);
         for (Object zip : keys) {
