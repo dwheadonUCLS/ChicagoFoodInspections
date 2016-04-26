@@ -35,4 +35,9 @@ public class DataGrapher extends Application {
         launch(args);
     }
     
+    @Override
+    public void stop() {
+        Singleton.save();
+    }
+    
 }
