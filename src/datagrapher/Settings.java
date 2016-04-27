@@ -16,25 +16,25 @@ import java.util.Map;
  *
  * @author dwheadon
  */
-public class Singleton implements java.io.Serializable {
+public class Settings implements java.io.Serializable {
     private String filterValue = "all";
-    public transient static Singleton instance;
+    public transient static Settings instance;
     private Map<Integer, Integer> failedInspections;
     
-    private Singleton() {}
+    private Settings() {}
     
     private static void init() {
         if (instance == null) {
             try
             {
-               FileInputStream fileIn = new FileInputStream("settings.blah");
+               FileInputStream fileIn = new FileInputStream("settings.ser");
                ObjectInputStream in = new ObjectInputStream(fileIn);
-               instance = (Singleton) in.readObject();
+               instance = (Settings) in.readObject();
                in.close();
                fileIn.close();
             }catch(IOException i)
             {
-               instance = new Singleton();
+               instance = new Settings();
                return;
             }catch(ClassNotFoundException c)
             {
@@ -69,12 +69,12 @@ public class Singleton implements java.io.Serializable {
         init();
         try {
            FileOutputStream fileOut =
-           new FileOutputStream("settings.blah");
+           new FileOutputStream("settings.ser");
            ObjectOutputStream out = new ObjectOutputStream(fileOut);
            out.writeObject(instance);
            out.close();
            fileOut.close();
-           System.out.printf("Serialized data is saved in settings.blah");
+           System.out.printf("Serialized data is saved in settings.ser");
         }catch(IOException i) {
             i.printStackTrace();
         }    

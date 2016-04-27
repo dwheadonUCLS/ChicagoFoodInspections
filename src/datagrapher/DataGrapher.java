@@ -37,7 +37,7 @@ public class DataGrapher extends Application {
     
     @Override
     public void stop() {
-        Singleton.save();
+        Settings.save();
     }
     
 }

@@ -36,16 +36,16 @@ public class MainController implements Initializable, ChangeListener<String> {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         filterChoice.setItems(FXCollections.observableArrayList("all", "good", "bad", "ugly"));
-        filterChoice.setValue(Singleton.getFilterValue()); // default
+        filterChoice.setValue(Settings.getFilterValue()); // default
         filterChoice.getSelectionModel().selectedItemProperty().addListener(this);
-        if(Singleton.getFailures() == null) {
+        if(Settings.getFailures() == null) {
             refreshData();
         }
         updateGraph(filterChoice.getValue().toString());
     }
     
     public void changed(ObservableValue ov, String value, String newValue) {
-        Singleton.setFilterValue(newValue);
+        Settings.setFilterValue(newValue);
         updateGraph(newValue);
     }    
     
@@ -90,7 +90,7 @@ public class MainController implements Initializable, ChangeListener<String> {
                 failedInspections.put(zip, currFails + 1);
             }
         }
-        Singleton.setFailures(failedInspections);
+        Settings.setFailures(failedInspections);
         updateGraph(filterChoice.getValue().toString());
     }       
     
@@ -98,7 +98,7 @@ public class MainController implements Initializable, ChangeListener<String> {
         chart.getData().clear();
         XYChart.Series<String, Number> failedSeries = new XYChart.Series();
         failedSeries.setName("# Failed Inspections");
-        Map<Integer, Integer> failedInspections = Singleton.getFailures();
+        Map<Integer, Integer> failedInspections = Settings.getFailures();
         Object[] keys = failedInspections.keySet().toArray();
         Arrays.sort(keys);
         for (Object zip : keys) {
