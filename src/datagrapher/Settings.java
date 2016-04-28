@@ -20,6 +20,7 @@ public class Settings implements java.io.Serializable {
     private String filterValue = "all";
     public transient static Settings instance;
     private Map<Integer, Integer> failedInspections;
+    private Map<Integer, Integer> unfailedInspections;
     
     private Settings() {}
     
@@ -53,6 +54,16 @@ public class Settings implements java.io.Serializable {
     public static void setFailures(Map<Integer, Integer> data) {
         init();
         instance.failedInspections = data;
+    }
+    
+    public static Map<Integer, Integer> getUnfailures() {
+        init();
+        return instance.unfailedInspections;
+    }
+    
+    public static void setUnfailures(Map<Integer, Integer> data) {
+        init();
+        instance.unfailedInspections = data;
     }
     
     public static String getFilterValue() {

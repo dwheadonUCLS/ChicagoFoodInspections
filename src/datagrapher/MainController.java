@@ -8,15 +8,21 @@ package datagrapher;
 import com.google.gson.Gson;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Side;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ChoiceBox;
@@ -28,8 +34,11 @@ import javafx.scene.control.ChoiceBox;
 public class MainController implements Initializable, ChangeListener<String> {
         
     @FXML
-    private BarChart chart;
+    private StackedBarChart<String,Number> chart;
     
+    @FXML
+    private LineChart<String,Number> percentFailedChart;
+
     @FXML
     private ChoiceBox filterChoice;
     
@@ -41,12 +50,12 @@ public class MainController implements Initializable, ChangeListener<String> {
         if(Settings.getFailures() == null) {
             refreshData();
         }
-        updateGraph(filterChoice.getValue().toString());
+        updateGraphs(filterChoice.getValue().toString());
     }
     
     public void changed(ObservableValue ov, String value, String newValue) {
         Settings.setFilterValue(newValue);
-        updateGraph(newValue);
+        updateGraphs(newValue);
     }    
     
     public void refreshData() {
@@ -73,14 +82,16 @@ public class MainController implements Initializable, ChangeListener<String> {
         scan.close();
 
         Map<Integer, Integer> failedInspections = new TreeMap<Integer, Integer>();
+        Map<Integer, Integer> unfailedInspections = new TreeMap<Integer, Integer>();
         Gson gson = new Gson();
         Inspection[] inspections = gson.fromJson(str, Inspection[].class);
 
-        // Add all the zips to the maps
+        // Add all the zips to both maps
         for (Inspection inspection : inspections) {
             Integer zip = inspection.getZip();
             if (! failedInspections.containsKey(zip)) {
                 failedInspections.put(zip, 0);
+                unfailedInspections.put(zip, 0);
             }
         }
         for (Inspection inspection : inspections) {
@@ -88,38 +99,83 @@ public class MainController implements Initializable, ChangeListener<String> {
             if (inspection.failed()) {
                 Integer currFails = failedInspections.get(zip);
                 failedInspections.put(zip, currFails + 1);
+            } else {
+                Integer curTotal = unfailedInspections.get(zip);
+                unfailedInspections.put(zip, curTotal + 1);
             }
         }
         Settings.setFailures(failedInspections);
-        updateGraph(filterChoice.getValue().toString());
+        Settings.setUnfailures(unfailedInspections);
+        updateGraphs(filterChoice.getValue().toString());
     }       
     
-    public void updateGraph(String newFilter) {
+    public void updateGraphs(String newFilter) {
         chart.getData().clear();
+        percentFailedChart.getData().clear();
+
+        // Get the updated data
+        Map<Integer, Integer> failedInspections = Settings.getFailures();
+        Map<Integer, Integer> unfailedInspections = Settings.getUnfailures();
+        
+        // Recreate the percentage data which is derived from the failed and unfailed data
+        Set<Integer> failedZips = failedInspections.keySet();
+        Set<Integer> unfailedZips = unfailedInspections.keySet();
+        Set<Integer> allZips = new TreeSet<Integer>();
+        allZips.addAll(failedZips);
+        allZips.addAll(unfailedZips);
+        // Map<Integer, Double> percentFailures = new TreeMap<Integer, Double>();
+
         XYChart.Series<String, Number> failedSeries = new XYChart.Series();
         failedSeries.setName("# Failed Inspections");
-        Map<Integer, Integer> failedInspections = Settings.getFailures();
-        Object[] keys = failedInspections.keySet().toArray();
-        Arrays.sort(keys);
-        for (Object zip : keys) {
+        XYChart.Series<String, Number> unfailedSeries = new XYChart.Series<>();
+        unfailedSeries.setName("# Unfailed Inspections");
+        XYChart.Series<String, Number> percentFailedSeries = new XYChart.Series();
+        // No legend for percentFailedSeries
+        
+        for (Integer zip : allZips) {
+            int failed = 0;
+            if (failedInspections.containsKey(zip)) {
+                failed = failedInspections.get(zip);
+            }
+            int unfailed = 0;
+            if (unfailedInspections.containsKey(zip)) {
+                unfailed = unfailedInspections.get(zip);
+            }
+            int total = failed + unfailed;
+            assert total != 0;
+            double percentFailed = failed / (double) total;
+            // percentFailures.put(zip, percent);
             String filter = filterChoice.getValue().toString();
-            int numFailures = failedInspections.get(zip);
             if (filter.equals("good")) {
-                if (numFailures < 5) {
-                    failedSeries.getData().add(new XYChart.Data(zip.toString(), numFailures));
+                if (percentFailed <= 0.25) {
+                    failedSeries.getData().add(new XYChart.Data(zip.toString(), failed));
+                    unfailedSeries.getData().add(new XYChart.Data(zip.toString(), unfailed));
+                    percentFailedSeries.getData().add(new XYChart.Data(zip.toString(), percentFailed));
                 }
             } else if (filter.equals("bad")) {
-                if (numFailures >= 5 && numFailures < 10) {
-                    failedSeries.getData().add(new XYChart.Data(zip.toString(), numFailures));
+                if (percentFailed > 0.25 && percentFailed < 0.75) {
+                    failedSeries.getData().add(new XYChart.Data(zip.toString(), failed));
+                    unfailedSeries.getData().add(new XYChart.Data(zip.toString(), unfailed));
+                    percentFailedSeries.getData().add(new XYChart.Data(zip.toString(), percentFailed));
                 }
             } else if (filter.equals("ugly")) {
-                if (numFailures >= 10) {
-                    failedSeries.getData().add(new XYChart.Data(zip.toString(), numFailures));
+                if (percentFailed >= 0.75) {
+                    failedSeries.getData().add(new XYChart.Data(zip.toString(), failed));
+                    unfailedSeries.getData().add(new XYChart.Data(zip.toString(), unfailed));
+                    percentFailedSeries.getData().add(new XYChart.Data(zip.toString(), percentFailed));
                 }
             } else { // all
-                failedSeries.getData().add(new XYChart.Data(zip.toString(), numFailures));
+                failedSeries.getData().add(new XYChart.Data(zip.toString(), failed));
+                unfailedSeries.getData().add(new XYChart.Data(zip.toString(), unfailed));
+                percentFailedSeries.getData().add(new XYChart.Data(zip.toString(), percentFailed));
             }
         }
+        
         chart.getData().add(failedSeries);
+        chart.getData().add(unfailedSeries);
+        percentFailedChart.getData().add(percentFailedSeries);
+        percentFailedChart.getXAxis().setTickLabelsVisible(false);
+        percentFailedChart.getYAxis().setSide(Side.RIGHT);
+        //percentFailedChart.getYAxis().setTickLabelsVisible(false);
     }
 }
