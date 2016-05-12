@@ -5,6 +5,7 @@
  */
 package datagrapher;
 
+import java.io.IOException;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,15 +18,18 @@ import javafx.stage.Stage;
  */
 public class DataGrapher extends Application {
     
+    private static DataGrapher appInstance;
+    private Stage mainWindow;
+    
+    public static DataGrapher getAppInstance() {
+        return appInstance;
+    }
+    
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("Main.fxml"));
-        
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("stylesheet.css").toExternalForm());
-        
-        stage.setScene(scene);
-        stage.show();
+        this.appInstance = this;
+        this.mainWindow = stage;
+        showGraphView();
     }
 
     /**
@@ -38,6 +42,26 @@ public class DataGrapher extends Application {
     @Override
     public void stop() {
         Settings.save();
+    }
+    
+    public void showTableView() throws IOException {
+        Parent root = FXMLLoader.load(getClass().getResource("Table.fxml"));
+        
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(getClass().getResource("stylesheet.css").toExternalForm());
+        
+        this.mainWindow.setScene(scene);
+        this.mainWindow.show();        
+    }
+
+    public void showGraphView() throws IOException {
+        Parent root = FXMLLoader.load(getClass().getResource("Main.fxml"));
+        
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(getClass().getResource("stylesheet.css").toExternalForm());
+        
+        this.mainWindow.setScene(scene);
+        this.mainWindow.show();
     }
     
 }

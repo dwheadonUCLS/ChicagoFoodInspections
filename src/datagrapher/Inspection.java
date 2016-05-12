@@ -16,10 +16,15 @@ public class Inspection {
     public Inspection() {
     }
     
+    public Inspection(int zip, String results) {
+        this.zip = zip;
+        this.results = results;
+    }
+    
     public int getZip() {
         return zip;
     }
-    
+        
     public boolean failed() {
         if (results.equals("Fail")) {
             return true;

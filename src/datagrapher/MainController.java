@@ -6,6 +6,7 @@
 package datagrapher;
 
 import com.google.gson.Gson;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,9 +16,12 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Side;
@@ -106,7 +110,9 @@ public class MainController implements Initializable, ChangeListener<String> {
         }
         Settings.setFailures(failedInspections);
         Settings.setUnfailures(unfailedInspections);
-        updateGraphs(filterChoice.getValue().toString());
+        String newFilter = filterChoice.getValue().toString();
+        Settings.setFilterValue(newFilter);
+        updateGraphs(newFilter);
     }       
     
     public void updateGraphs(String newFilter) {
@@ -177,5 +183,14 @@ public class MainController implements Initializable, ChangeListener<String> {
         percentFailedChart.getXAxis().setTickLabelsVisible(false);
         percentFailedChart.getYAxis().setSide(Side.RIGHT);
         //percentFailedChart.getYAxis().setTickLabelsVisible(false);
+    }
+    
+    @FXML
+    public void handleShowData(ActionEvent event) {
+        try {
+            DataGrapher.getAppInstance().showTableView();
+        } catch (IOException ex) {
+            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }
